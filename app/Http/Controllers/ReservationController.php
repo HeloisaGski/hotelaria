@@ -37,20 +37,34 @@ class ReservationController extends Controller
     public function edit($id)
     {
         $reservation = Reservation::findOrFail($id);
-        return view('reservations.edit', compact('reservation'));
+        $rooms = Room::where('status',1)->get();
+        $guests = Guest::all();
+        return view('reservations.edit', compact('reservation', 'rooms', 'guests'));
     }
 
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'guest_id' => 'required|exists:guests,id',
+            'room_id' => 'required|exists:rooms,id',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date',
+        ]);
+
         $reservation = Reservation::findOrFail($id);
-        $reservation->update($request->all());
-        return redirect('reservations')->with('success', 'Product updated successfully.');
+        $reservation->update([
+            'guest_id' =>$request->guest_id,
+            'room_id' => $request->room_id,
+            'check_in' => $request->check_in,
+            'check_out'=> $request->check_out,
+        ]);
+        return redirect()->route('reservations.index')->with('success', 'Reservation updated successfully.');
     }
 
     public function destroy($id)
     {
         $reservation = Reservation::findOrFail($id);
         $reservation->delete();
-        return redirect('reservations')->with('success', 'Product deleted successfully.');
+        return redirect()->route('reservations.index')->with('success', 'Reservation deleted successfully.');
     }
 }
